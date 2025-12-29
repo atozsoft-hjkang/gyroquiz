@@ -12,153 +12,153 @@
       border-radius: 10px; font-size: 14px;
     }
   </style>
+
+  <!-- ✅ 핵심: bare import "three"를 URL로 매핑 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
+
 <body>
-<div id="hint">Android Chrome에서 실행 권장. AR 시작 후 바닥을 비추고 화면을 탭하면 병사가 배치됩니다.</div>
+  <div id="hint">Android Chrome에서 실행 권장. AR 시작 후 바닥을 비추고 화면을 탭하면 병사가 배치됩니다.</div>
 
-<script type="module">
-  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-  import { ARButton } from "https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js";
-  import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+  <script type="module">
+    import * as THREE from "three";
+    import { ARButton } from "three/addons/webxr/ARButton.js";
+    import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-  // === 설정 ===
-  const MODEL_URL = "./soldier.glb"; // 같은 폴더에 soldier.glb 두면 됨
-  const MODEL_SCALE = 1.0;           // 병사 크기 조절
+    // === 설정 ===
+    const MODEL_URL = "./soldier.glb"; // 같은 폴더에 soldier.glb 두기
+    const MODEL_SCALE = 1.0;
 
-  let camera, scene, renderer;
-  let controller;
-  let reticle;
-  let hitTestSource = null;
-  let hitTestSourceRequested = false;
+    let camera, scene, renderer;
+    let controller;
+    let reticle;
+    let hitTestSource = null;
+    let hitTestSourceRequested = false;
 
-  let soldier = null;
-  let soldierPlaced = false;
+    let soldier = null;
+    let soldierPlaced = false;
 
-  init();
-  animate();
+    init();
+    animate();
 
-  function init() {
-    scene = new THREE.Scene();
+    function init() {
+      scene = new THREE.Scene();
 
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 30);
+      camera = new THREE.PerspectiveCamera(
+        70, window.innerWidth / window.innerHeight, 0.01, 30
+      );
 
-    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-    scene.add(light);
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+      scene.add(light);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
+      document.body.appendChild(renderer.domElement);
 
-    // AR 시작 버튼
-    document.body.appendChild(
-      ARButton.createButton(renderer, {
-        requiredFeatures: ["hit-test"],
-      })
-    );
+      document.body.appendChild(
+        ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
+      );
 
-    // 히트테스트 결과(바닥)에 표시할 레티클(원)
-    const ringGeo = new THREE.RingGeometry(0.08, 0.12, 32).rotateX(-Math.PI / 2);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
-    reticle = new THREE.Mesh(ringGeo, ringMat);
-    reticle.matrixAutoUpdate = false;
-    reticle.visible = false;
-    scene.add(reticle);
+      const ringGeo = new THREE.RingGeometry(0.08, 0.12, 32).rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+      reticle = new THREE.Mesh(ringGeo, ringMat);
+      reticle.matrixAutoUpdate = false;
+      reticle.visible = false;
+      scene.add(reticle);
 
-    // 탭(Select) 이벤트: 레티클 위치에 병사 배치
-    controller = renderer.xr.getController(0);
-    controller.addEventListener("select", onSelect);
-    scene.add(controller);
+      controller = renderer.xr.getController(0);
+      controller.addEventListener("select", onSelect);
+      scene.add(controller);
 
-    // 병사 GLB 로드
-    const loader = new GLTFLoader();
-    loader.load(
-      MODEL_URL,
-      (gltf) => {
-        soldier = gltf.scene;
-        soldier.visible = false; // 배치 전에는 숨김
-        soldier.scale.setScalar(MODEL_SCALE);
-
-        // 바닥 기준이 안 맞으면 Y를 약간 올리거나(예: 0.0~0.2)
-        // soldier.position.y = 0.0;
-
-        scene.add(soldier);
-      },
-      undefined,
-      (err) => {
-        console.error("GLB 로드 실패:", err);
-        alert("GLB 로드 실패. soldier.glb 경로/서버(CORS/HTTPS) 확인!");
-      }
-    );
-
-    window.addEventListener("resize", onWindowResize);
-  }
-
-  function onSelect() {
-    if (!soldier || soldierPlaced) return;
-    if (!reticle.visible) return;
-
-    // 레티클 매트릭스를 병사에 복사하여 그 위치에 고정
-    soldier.visible = true;
-    soldierPlaced = true;
-
-    soldier.matrix.copy(reticle.matrix);
-    soldier.matrix.decompose(soldier.position, soldier.quaternion, soldier.scale);
-
-    // 레티클은 숨겨도 됨
-    reticle.visible = false;
-  }
-
-  function animate() {
-    renderer.setAnimationLoop(render);
-  }
-
-  function render(timestamp, frame) {
-    if (frame) {
-      const referenceSpace = renderer.xr.getReferenceSpace();
-      const session = renderer.xr.getSession();
-
-      if (!hitTestSourceRequested) {
-        session.requestReferenceSpace("viewer").then((viewerSpace) => {
-          session.requestHitTestSource({ space: viewerSpace }).then((source) => {
-            hitTestSource = source;
-          });
-        });
-
-        session.addEventListener("end", () => {
-          hitTestSourceRequested = false;
-          hitTestSource = null;
-          soldierPlaced = false;
-          if (soldier) soldier.visible = false;
-        });
-
-        hitTestSourceRequested = true;
-      }
-
-      if (hitTestSource && !soldierPlaced) {
-        const hitTestResults = frame.getHitTestResults(hitTestSource);
-
-        if (hitTestResults.length) {
-          const hit = hitTestResults[0];
-          const pose = hit.getPose(referenceSpace);
-
-          reticle.visible = true;
-          reticle.matrix.fromArray(pose.transform.matrix);
-        } else {
-          reticle.visible = false;
+      const loader = new GLTFLoader();
+      loader.load(
+        MODEL_URL,
+        (gltf) => {
+          soldier = gltf.scene;
+          soldier.visible = false;
+          soldier.scale.setScalar(MODEL_SCALE);
+          scene.add(soldier);
+        },
+        undefined,
+        (err) => {
+          console.error("GLB 로드 실패:", err);
+          alert("GLB 로드 실패. soldier.glb 경로/서버(HTTPS/localhost) 확인!");
         }
-      }
+      );
+
+      window.addEventListener("resize", onWindowResize);
     }
 
-    renderer.render(scene, camera);
-  }
+    function onSelect() {
+      if (!soldier || soldierPlaced) return;
+      if (!reticle.visible) return;
 
-  function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-</script>
+      soldier.visible = true;
+      soldierPlaced = true;
+
+      soldier.matrix.copy(reticle.matrix);
+      soldier.matrix.decompose(soldier.position, soldier.quaternion, soldier.scale);
+
+      reticle.visible = false;
+    }
+
+    function animate() {
+      renderer.setAnimationLoop(render);
+    }
+
+    function render(timestamp, frame) {
+      if (frame) {
+        const referenceSpace = renderer.xr.getReferenceSpace();
+        const session = renderer.xr.getSession();
+
+        if (!hitTestSourceRequested) {
+          session.requestReferenceSpace("viewer").then((viewerSpace) => {
+            session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+              hitTestSource = source;
+            });
+          });
+
+          session.addEventListener("end", () => {
+            hitTestSourceRequested = false;
+            hitTestSource = null;
+            soldierPlaced = false;
+            if (soldier) soldier.visible = false;
+          });
+
+          hitTestSourceRequested = true;
+        }
+
+        if (hitTestSource && !soldierPlaced) {
+          const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+          if (hitTestResults.length) {
+            const hit = hitTestResults[0];
+            const pose = hit.getPose(referenceSpace);
+            reticle.visible = true;
+            reticle.matrix.fromArray(pose.transform.matrix);
+          } else {
+            reticle.visible = false;
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  </script>
 </body>
 </html>
