@@ -1,1 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dolmen AR Demo — model-viewer</title>
+  <meta name="description" content="경량 AR 프로토타입: 고인돌(Dolmen) 3D 모델 데모" />
+  <!-- model-viewer (loads from CDN) -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
+  <style>
+    :root {
+      --bg:#0b1220; --card:#121a2b; --text:#eaf2ff; --muted:#93a2c8; --accent:#5ad4ff;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(180deg, #0b1220, #0b1220 60%, #0e1628);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+    }
+    header {
+      padding: 18px 20px 8px;
+    }
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 16px 40px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    model-viewer {
+      width: 100%;
+      height: 64vh;
+      min-height: 420px;
+      background: radial-gradient(1200px 600px at 50% 0%, rgba(90,212,255,0.12), transparent 60%);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+    }
+    .controls button, .controls a, .controls label {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .06s ease, background .2s ease, border .2s ease;
+    }
+    .controls button:hover, .controls a:hover, .controls label:hover {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.24);
+      transform: translateY(-1px);
+    }
+    .notes {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    code {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .badge {
+      color: #000;
+      background: var(--accent);
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 2px 8px;
+      display: inline-block;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Dolmen AR Prototype <span class="badge">DEMO</span></h1>
+      <p>iOS(Quick Look), Android(Scene Viewer), WebXR(가능 단말)에서 동작하는 경량 AR 데모입니다. <br>
+      아래 <code>dolmen.glb</code> / <code>dolmen.usdz</code> 경로를 실제 파일 경로로 교체하세요.</p>
+    </div>
+  </header>
 
+  <div class="wrap">
+    <div class="card">
+      <!--
+        HOW TO USE
+        1) 같은 폴더에 dolmen.glb / dolmen.usdz 파일을 넣거나, 아래 src/ios-src를 웹에 업로드된 파일 URL로 변경합니다.
+        2) iOS Safari에서는 "AR로 보기" 클릭 시 Quick Look으로 실행됩니다(.usdz 필요).
+        3) Android에서는 "AR로 보기" 클릭 시 Scene Viewer로 실행됩니다(.glb 권장).
+        4) 데스크탑/미지원 단말은 3D 뷰어 모드로 동작합니다.
+      -->
+      <model-viewer id="viewer"
+        src="https://s3.ap-northeast-2.amazonaws.com/admin.gss.go.kr/Dolmen%20Plinth%20Construction.usdz?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDmFwLW5vcnRoZWFzdC0yIkcwRQIhAKN%2F2Qq32a7ITaZjlhd146f39xgyd4%2B3MtXjAzu%2FuUmnAiB8gzObKx%2FI83pQ4P9LVqMkOL%2FcaGv2Vs%2F3O2FyKYaumyqnBAg8EAAaDDQwNDc4Mjc1NDMxMyIMkf7n6FGJD213C0KHKoQENo91CgMio0aAccCc8pJ40b9Ty6OxiuXCpgXi37dGDzMc7u2ZaS7sVJGXhJJPs5zglmo07qgweTnIyVA4x%2F7E2QKZwz2UXKA9HZl74GzfYpW9OKvwygCNSwHoiRxEFm3Pqhdf%2BC6yfCMR6lOeRsVETdpK2RM%2FsNmI9XRiu0VYx7LSP4jAqZhGfEslERAFT0MhnetpPiO%2BrbVSS5qCQd1kB6WFxueRJB6fKzymhIhiqD51c8owCLEMT45%2B98Fy78vapMoNy9uvs%2FRPSwe4TuoOCpESIiP4gJC7nKMW8kX1oi1TK3gepPsaiEYhB6TVwHlU0d93V%2BMPLVMQaJ42Iqup9FBegTbEvLdcuhI95fYnEM38xq0OwTqIdkvjWteXLUJXZO43DNoydZfPTnZ6FhTcHb%2B0IhIuxUxNqXviBHhkqK9WeGrC74lGnmD7niqLXsara9d%2BHmNX%2B%2BS24apH4RCrIv8HTH53c5yn27Rfk5ThjCYOvoGbTXtxmtYQF7RSS%2BU8z4MArlfUz0DcS2pHMO8JebGE%2BcXn%2Bg5jJ3DTSvbF33WUaeWfyGYtncofnzhRpLXoHOGyC1G7bUJuVlc9w4jXmKZ7fEwrCp74VFGp2PHp16aTWu35rnpEqoBn5lbFeJ%2B%2FTm%2BniLO4LkHJ9suk7ipEBw9UN73cpMRnsyOn4me4Yms%2FLNmrMKOm9cQGOsUClyqkpdMLh61PZlCZLI0wMlhuL2LFJwOnhQhhHIzk09PPX94s8W5xNFDrS9CtvgGyX4ouFoYShnC9l8rL8TyS%2BB1jSAefUFrCvDEp01If%2F0Zipfm5ezPogYB64LuYM2yh6nbSGtaOkuxM7g6OMlMWMu1wpr%2BRZg1GafYwylavlBQJPG2MqmAunERey61ZIPfPtwuUi%2BJEzjHqXakmsTfHNbRLK%2FrwU5iqnJtPWaJitMa%2FJX95CXmYXnM8tClOjDU0abVwDdV6dAoQjYs6M08OjVahYzySAJhdRopFP7v7wyYlpMHAJ65hhfoe2LiGUHwt%2FitBozCvUYJchAj4mKUyXAR9%2FLKnrVDd%2FOZX2dCagds5hdN5QbSMcNse7lL%2BdU4uuTr9u0j%2BPtq2Q5CKVsNs5UcuLdBXS5mIWxNtmtZIpPpreWTCIA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAV4PXOVIEZJ6EDLP3%2F20250814%2Fap-northeast-2%2Fs3%2Faws4_request&X-Amz-Date=20250814T030848Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=9cc6deb25e5a452c3dbf5ae4c7f4563e030d3e9a85ebc275f5b9d2e8980338b9"
+        ios-src="https://s3.ap-northeast-2.amazonaws.com/admin.gss.go.kr/Dolmen%20Plinth%20Construction.usdz?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDmFwLW5vcnRoZWFzdC0yIkcwRQIhAKN%2F2Qq32a7ITaZjlhd146f39xgyd4%2B3MtXjAzu%2FuUmnAiB8gzObKx%2FI83pQ4P9LVqMkOL%2FcaGv2Vs%2F3O2FyKYaumyqnBAg8EAAaDDQwNDc4Mjc1NDMxMyIMkf7n6FGJD213C0KHKoQENo91CgMio0aAccCc8pJ40b9Ty6OxiuXCpgXi37dGDzMc7u2ZaS7sVJGXhJJPs5zglmo07qgweTnIyVA4x%2F7E2QKZwz2UXKA9HZl74GzfYpW9OKvwygCNSwHoiRxEFm3Pqhdf%2BC6yfCMR6lOeRsVETdpK2RM%2FsNmI9XRiu0VYx7LSP4jAqZhGfEslERAFT0MhnetpPiO%2BrbVSS5qCQd1kB6WFxueRJB6fKzymhIhiqD51c8owCLEMT45%2B98Fy78vapMoNy9uvs%2FRPSwe4TuoOCpESIiP4gJC7nKMW8kX1oi1TK3gepPsaiEYhB6TVwHlU0d93V%2BMPLVMQaJ42Iqup9FBegTbEvLdcuhI95fYnEM38xq0OwTqIdkvjWteXLUJXZO43DNoydZfPTnZ6FhTcHb%2B0IhIuxUxNqXviBHhkqK9WeGrC74lGnmD7niqLXsara9d%2BHmNX%2B%2BS24apH4RCrIv8HTH53c5yn27Rfk5ThjCYOvoGbTXtxmtYQF7RSS%2BU8z4MArlfUz0DcS2pHMO8JebGE%2BcXn%2Bg5jJ3DTSvbF33WUaeWfyGYtncofnzhRpLXoHOGyC1G7bUJuVlc9w4jXmKZ7fEwrCp74VFGp2PHp16aTWu35rnpEqoBn5lbFeJ%2B%2FTm%2BniLO4LkHJ9suk7ipEBw9UN73cpMRnsyOn4me4Yms%2FLNmrMKOm9cQGOsUClyqkpdMLh61PZlCZLI0wMlhuL2LFJwOnhQhhHIzk09PPX94s8W5xNFDrS9CtvgGyX4ouFoYShnC9l8rL8TyS%2BB1jSAefUFrCvDEp01If%2F0Zipfm5ezPogYB64LuYM2yh6nbSGtaOkuxM7g6OMlMWMu1wpr%2BRZg1GafYwylavlBQJPG2MqmAunERey61ZIPfPtwuUi%2BJEzjHqXakmsTfHNbRLK%2FrwU5iqnJtPWaJitMa%2FJX95CXmYXnM8tClOjDU0abVwDdV6dAoQjYs6M08OjVahYzySAJhdRopFP7v7wyYlpMHAJ65hhfoe2LiGUHwt%2FitBozCvUYJchAj4mKUyXAR9%2FLKnrVDd%2FOZX2dCagds5hdN5QbSMcNse7lL%2BdU4uuTr9u0j%2BPtq2Q5CKVsNs5UcuLdBXS5mIWxNtmtZIpPpreWTCIA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAV4PXOVIEZJ6EDLP3%2F20250814%2Fap-northeast-2%2Fs3%2Faws4_request&X-Amz-Date=20250814T030848Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=9cc6deb25e5a452c3dbf5ae4c7f4563e030d3e9a85ebc275f5b9d2e8980338b9"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="fixed"
+        camera-controls
+        environment-image="neutral"
+        exposure="1.0"
+        tone-mapping="aces"
+        shadow-intensity="0.8"
+        interaction-prompt="auto"
+        interaction-prompt-style="wiggle"
+        autoplay
+        disable-zoom="false"
+        loading="eager"
+        style="--poster-color: transparent;">
+        <button slot="ar-button" id="ar-button">📱 AR로 보기</button>
+        <div class="progress-bar" slot="progress-bar" style="display:none;">
+          <div class="update-bar"></div>
+        </div>
+      </model-viewer>
+
+      <div class="controls">
+        <button onclick="resetCamera()">카메라 리셋</button>
+        <button onclick="toggleWireframe()">와이어프레임 토글</button>
+        <button onclick="setCompare()">현재↔복원(투명) 비교</button>
+        <label for="file">모델 교체(.glb): <input id='file' type='file' accept='.glb' style="display:none" /></label>
+      </div>
+    </div>
+
+    <div class="notes">
+      <strong>주의사항</strong><br>
+      • iOS는 Safari 사용 권장(Quick Look). iOS Chrome은 제한될 수 있습니다. <br>
+      • 파일명이 다를 경우 <code>src</code> / <code>ios-src</code>를 실제 경로로 수정하세요. <br>
+      • WebXR은 지원 단말/브라우저에서만 동작합니다. <br>
+      • 성능 문제 시 폴리곤 수를 줄이고 텍스처 해상도를 낮춰 주세요.
+    </div>
+  </div>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+    const fileInput = document.getElementById('file');
+
+    function resetCamera() {
+      viewer.cameraOrbit = "0deg 75deg 105%";
+      viewer.fieldOfView = "45deg";
+    }
+
+    let wireOn = false;
+    function toggleWireframe() {
+      // Simple wireframe effect: switch to unlit + reduce exposure (note: true wireframe needs custom material)
+      wireOn = !wireOn;
+      viewer.style.filter = wireOn ? "contrast(1.1) saturate(0.8)" : "none";
+      alert(wireOn ? "와이어프레임 유사 뷰(효과) ON" : "와이어프레임 유사 뷰 OFF");
+    }
+
+    let compareOn = false;
+    function setCompare() {
+      compareOn = !compareOn;
+      viewer.style.opacity = compareOn ? 0.7 : 1.0;
+      alert(compareOn ? "투명 모드(복원 비교) ON" : "투명 모드 OFF");
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      viewer.src = url;
+    });
+  </script>
+</body>
+</html>
