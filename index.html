@@ -33,7 +33,9 @@
     import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
     // === 설정 ===
-    const MODEL_URL = "./soldier.glb"; // 같은 폴더에 soldier.glb 두기
+    // const MODEL_URL = "./soldier.glb"; // 같은 폴더에 soldier.glb 두기
+    const MODEL_URL = new URL("./soldier.glb", import.meta.url).href;
+
     const MODEL_SCALE = 1.0;
 
     let camera, scene, renderer;
